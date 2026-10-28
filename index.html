@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Whisper на Windows</title>
+<meta name="description" content="Пошаговая инструкция: расшифровка аудио и видео в текст на Windows 11 через Whisper, с готовыми командами для Терминала.">
+<style>
+  :root {
+    --bg: #fbfaf7; --text: #1d1d1b; --muted: #6b6a66; --line: #e4e1da;
+    --code-bg: #f1eee8; --block-bg: #1f1f1d; --block-text: #f3f1ec; --accent: #2f6f4e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #161615; --text: #ebe9e4; --muted: #9b9993; --line: #2e2d2a;
+      --code-bg: #262523; --block-bg: #0f0f0e; --block-text: #e9e7e1; --accent: #7cc39b; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.6 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 48px 20px 96px; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0 0 16px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.35rem; margin: 48px 0 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+  h3 { font-size: 1.1rem; margin: 28px 0 8px; }
+  p, li { max-width: 68ch; }
+  a { color: var(--accent); }
+  code { font: 0.9em ui-monospace, "SF Mono", Menlo, monospace; background: var(--code-bg);
+    padding: 0.1em 0.35em; border-radius: 4px; }
+  .block { position: relative; margin: 12px 0 20px; }
+  pre { margin: 0; background: var(--block-bg); color: var(--block-text); padding: 16px 18px;
+    border-radius: 8px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .copy { position: absolute; top: 8px; right: 8px; font: 13px -apple-system, sans-serif;
+    background: #3a3936; color: #f3f1ec; border: 0; border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+  .copy:hover { background: #4b4a46; }
+  .copy:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 20px; font-size: 15px; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  footer { margin-top: 64px; color: var(--muted); font-size: 14px; }
+</style>
+</head>
+<body>
+<main id="content"><p>Загрузка…</p></main>
+<script src="https://cdn.jsdelivr.net/npm/marked@14/marked.min.js"></script>
+<script>
+  fetch("README.md")
+    .then((r) => r.text())
+    .then((md) => {
+      const main = document.getElementById("content");
+      main.innerHTML = marked.parse(md) +
+        '<footer>Исходник инструкции — <a href="https://github.com/FDN11/whisper-windows-guide">github.com/FDN11/whisper-windows-guide</a></footer>';
+      main.querySelectorAll("pre").forEach((pre) => {
+        const wrap = document.createElement("div");
+        wrap.className = "block";
+        pre.replaceWith(wrap);
+        wrap.appendChild(pre);
+        const btn = document.createElement("button");
+        btn.className = "copy";
+        btn.type = "button";
+        btn.textContent = "Скопировать";
+        btn.addEventListener("click", async () => {
+          await navigator.clipboard.writeText(pre.innerText.replace(/\n$/, ""));
+          btn.textContent = "Скопировано ✓";
+          setTimeout(() => (btn.textContent = "Скопировать"), 1500);
+        });
+        wrap.appendChild(btn);
+      });
+    })
+    .catch(() => {
+      document.getElementById("content").innerHTML =
+        '<p>Не удалось загрузить страницу. Откройте инструкцию на <a href="https://github.com/FDN11/whisper-windows-guide">GitHub</a>.</p>';
+    });
+</script>
+</body>
+</html>
