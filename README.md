@@ -53,10 +53,10 @@ Get-ChildItem C:\whisper\bin -Recurse -Filter whisper-cli.exe | Select-Object Fu
 
 ## Шаг 4. Скачать модель (один раз)
 
-Модель — это «мозг» Whisper, отдельный большой файл. Рекомендованная — **large-v3-turbo** (1,6 ГБ, хорошее качество для русского):
+Модель — это «мозг» Whisper, отдельный большой файл. Основная — **large-v3** (3 ГБ, лучшее качество для русского):
 
 ```powershell
-curl.exe -L -o C:\whisper\models\ggml-large-v3-turbo.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
+curl.exe -L -o C:\whisper\models\ggml-large-v3.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3.bin
 ```
 
 ### Чем отличаются модели
@@ -66,16 +66,16 @@ curl.exe -L -o C:\whisper\models\ggml-large-v3-turbo.bin https://huggingface.co/
 | tiny | 75 МБ | очень быстро | плохо | только проверить, что всё работает |
 | base | 142 МБ | очень быстро | слабо, много ошибок | черновик чистой речи |
 | small | 466 МБ | быстро | средне | слабый или старый компьютер |
-| medium | 1,5 ГБ | средне | хорошо | если turbo ошибается на терминах |
-| **large-v3-turbo** | **1,6 ГБ** | **средне** | **очень хорошо** | **основной вариант** |
-| large-v3 | 3 ГБ | медленно, в 3–5 раз дольше turbo | лучшее | важные записи, плохой звук, несколько собеседников |
+| medium | 1,5 ГБ | средне | хорошо | компромисс скорости и качества |
+| large-v3-turbo | 1,6 ГБ | средне | очень хорошо | когда нужно быстрее и качество чуть ниже не критично |
+| **large-v3** | **3 ГБ** | **медленно, в 3–5 раз дольше turbo** | **лучшее** | **основной вариант** |
 
 Модели с `.en` в названии понимают только английский — для русского их не берите.
 
-Скачать другую модель — та же команда, поменяйте название в двух местах. Например, small:
+Скачать другую модель — та же команда, поменяйте название в двух местах. Например, быстрая large-v3-turbo:
 
 ```powershell
-curl.exe -L -o C:\whisper\models\ggml-small.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
+curl.exe -L -o C:\whisper\models\ggml-large-v3-turbo.bin https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-large-v3-turbo.bin
 ```
 
 Посмотреть, какие модели уже скачаны:
@@ -92,7 +92,7 @@ Get-ChildItem C:\whisper\models
 if (-not (Test-Path $PROFILE)) { New-Item -ItemType File -Path $PROFILE -Force | Out-Null }
 @'
 function transcribe {
-  $model = if ($env:WHISPER_MODEL) { $env:WHISPER_MODEL } else { "C:\whisper\models\ggml-large-v3-turbo.bin" }
+  $model = if ($env:WHISPER_MODEL) { $env:WHISPER_MODEL } else { "C:\whisper\models\ggml-large-v3.bin" }
   $lang = if ($env:WHISPER_LANG) { $env:WHISPER_LANG } else { "ru" }
   $exe = Get-ChildItem C:\whisper\bin -Recurse -Filter whisper-cli.exe | Select-Object -First 1
   if (-not $exe) { Write-Host "ERROR: whisper-cli.exe not found - repeat step 3"; return }
@@ -138,7 +138,7 @@ transcribe "C:\Users\Имя\Downloads\встреча.mp4"
 - `встреча.txt` — сплошной текст;
 - `встреча.srt` — текст с таймкодами (видно, на какой минуте что сказано; открывается Блокнотом, подходит как субтитры к видео).
 
-Ориентир по времени: расшифровка идёт на процессоре, поэтому дольше, чем на Mac. На современном ноутбуке с моделью turbo часовая запись — примерно от 15 минут до часа. Если слишком медленно — возьмите модель small или medium.
+Ориентир по времени: расшифровка идёт на процессоре, поэтому дольше, чем на Mac. С моделью large-v3 часовая запись на современном ноутбуке может занять от часа до нескольких часов — можно запустить и заниматься своими делами. Если слишком медленно — переключитесь на turbo (шаблон ниже), она в 3–5 раз быстрее.
 
 ### Готовые шаблоны
 
@@ -172,10 +172,10 @@ transcribe "$HOME\Desktop\Расшифровать\*"
 $env:WHISPER_LANG = "en"
 ```
 
-Другая модель — например, самая точная large-v3 (сначала скачайте её, шаг 4). Тоже до закрытия окна:
+Нужно быстрее — модель turbo (сначала скачайте её, шаг 4). Тоже до закрытия окна:
 
 ```powershell
-$env:WHISPER_MODEL = "C:\whisper\models\ggml-large-v3.bin"
+$env:WHISPER_MODEL = "C:\whisper\models\ggml-large-v3-turbo.bin"
 ```
 
 Открыть получившийся текст в Блокноте:
@@ -192,10 +192,10 @@ notepad "$HOME\Downloads\встреча.txt"
 | `ffmpeg` не распознано как имя командлета | Закройте Терминал и откройте заново. Не помогло — повторите шаг 2. |
 | `transcribe` не распознано как имя командлета | Закройте Терминал и откройте заново. Не помогло — повторите шаг 5. |
 | `ERROR: whisper-cli.exe not found` | Повторите шаг 3. Если ссылка не скачивается — включите или выключите VPN и повторите. |
-| `ERROR: model not found` | Команда ищет модель large-v3-turbo. Скачайте её (шаг 4) или укажите ту, что уже есть: `$env:WHISPER_MODEL = "C:\whisper\models\ИМЯ.bin"`. |
+| `ERROR: model not found` | Команда ищет модель large-v3. Скачайте её (шаг 4) или укажите ту, что уже есть: `$env:WHISPER_MODEL = "C:\whisper\models\ИМЯ.bin"`. |
 | `ERROR: could not transcribe` | Проверьте, что файл открывается в обычном плеере и в нём есть звук. Если модель скачивалась с обрывом — удалите её из `C:\whisper\models` и скачайте заново. |
 | Антивирус ругается на `whisper-cli.exe` | Это официальная сборка проекта whisper.cpp с GitHub. Добавьте папку `C:\whisper` в исключения. |
-| Текст с ошибками | Возьмите large-v3. Сильно помогает и чистый звук без музыки и шума. |
+| Текст с ошибками | Сильно помогает чистый звук без музыки и шума. Если стоит turbo — вернитесь на large-v3. |
 | В тексте повторяется одна и та же фраза или «Продолжение следует…» | Так Whisper «додумывает» тишину в конце записи — просто удалите эти строки. |
 
 Ничего никуда не отправляется: и модели, и расшифровка работают только на этом компьютере, поэтому подходит и для конфиденциальных записей.
